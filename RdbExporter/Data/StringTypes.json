@@ -1,0 +1,78 @@
+﻿[
+  {
+    "id": "520",
+    "name": "dialog_prompts"
+  },
+  {
+    "id": "50200",
+    "name": "item_names"
+  },
+  {
+    "id": "50201",
+    "name": "item_descriptions"
+  },
+  {
+    "id": "50202",
+    "name": "item_descriptions2?"
+  },
+  {
+    "id": "50210",
+    "name": "buffs"
+  },
+  {
+    "id": "50211",
+    "name": "buffs2" //Foo
+  },
+  {
+    "id": "50212",
+    "name": "buffs3"
+  },
+  {
+    "id": "50303",
+    "name": "mission_tier_directions"
+  },
+  {
+    "id": "50304",
+    "name": "mission_tier_descriptions"
+  },
+  {
+    "id": "50307",
+    "name": "mission_description"
+  },
+  {
+    "id": "50310",
+    "name": "mission_complete_text_templar"
+  },
+  {
+    "id": "50311",
+    "name": "mission_complete_text_illuminati"
+  },
+  {
+    "id": "50312",
+    "name": "mission_complete_text_dragon"
+  },
+  {
+    "id": "50313",
+    "name": "mission_unavailable_text"
+  },
+  {
+    "id": "51000",
+    "name": "enemy_npc_names"
+  },
+  {
+    "id": "55700",
+    "name": "achievment_descriptions"
+  },
+  {
+    "id": "55701",
+    "name": "emotes"
+  },
+  {
+    "id": "55800",
+    "name": "wardrobe_names"
+  },
+  {
+    "id": "55801",
+    "name": "wardrobe_sources"
+  }
+]

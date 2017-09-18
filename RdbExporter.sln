@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RdbExporter", "RdbExporter\RdbExporter.csproj", "{45AC065A-0528-44B1-8373-47769DA802DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45AC065A-0528-44B1-8373-47769DA802DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45AC065A-0528-44B1-8373-47769DA802DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45AC065A-0528-44B1-8373-47769DA802DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45AC065A-0528-44B1-8373-47769DA802DC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8E9162B-A0FF-4128-82C1-6F63794F2616}
+	EndGlobalSection
+EndGlobal
