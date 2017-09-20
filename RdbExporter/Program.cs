@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.CommandLineUtils;
+using Newtonsoft.Json;
 using RdbExporter.Entities;
 using RdbExporter.Parsers;
 using System;
@@ -13,27 +14,77 @@ namespace RdbExporter
     {
         static void Main(string[] args)
         {
-            if (args.Length < 1) throw new ArgumentException("Require install dir parameter");
-            string installDir = args[0];
-            //string exportDir = args?[1];
-            //if (string.IsNullOrWhiteSpace(exportDir)) throw new ArgumentException("Require RDB 1030002 export dir parameter");
+            var cmd = new CommandLineApplication();
+            
+            var listOption = cmd.Option("-l | --list", "List RDB Types",  CommandOptionType.NoValue);
+            var pathOption = cmd.Option("-i | --installDir <SWLPath>", "Path to SWL installation",  CommandOptionType.SingleValue);
+            var rdbOption = cmd.Option("-d | --rdb <RDBNumberOrName>", "The name or ID of the RDB type to export.",  CommandOptionType.SingleValue);
+            var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of content-aware.", CommandOptionType.NoValue);
+            cmd.HelpOption("-? | -h | --help");
 
-            ExportStrings(installDir);
+            cmd.OnExecute(() => {
+                if (!pathOption.HasValue())
+                {
+                    Console.WriteLine("--installDir option is required.");
+                    cmd.ShowHelp();
+                    return 1;
+                }
 
-            //var languageFiles = Directory.EnumerateFiles(Path.Combine(installDir, @"Data\Text\"), "*.tdbl", SearchOption.TopDirectoryOnly).Select(TDL1Parser.ParseTDL1File).ToList();
-            ////var languageFiles = Directory.EnumerateFiles(@"C:\Users\joshu\Downloads\exported\1030001 (Language Index)", "*.dat", SearchOption.TopDirectoryOnly).Select(TDL1Parser.ParseTDL1File).ToList();
+                if (listOption.HasValue())
+                {
+                    PrintIndex(pathOption.Value());
+                    return 0;
+                }
+                
+                if (!rdbOption.HasValue())
+                {
+                    Console.WriteLine("--rdb or --list option is required.");
+                    cmd.ShowHelp();
+                    return 1;
+                }
 
-            //foreach(var languageFile in languageFiles)
-            //{
-            //    //Parallel.ForEach(languageFile.Entries, (entry) => WriteOutputJson(exportDir, entry, languageFile));
-            //    Parallel.ForEach(languageFile.Entries, (entry) => WriteOutputJson(exportDir, entry, languageFile));
-            //}
+                if (rawOption.HasValue())
+                {
+                    //TODO: Export just to raw .dat files
+                    return 0;
+                }
+
+                //TODO: Genericize this more or something, maybe have the RDBTypes.json have a target method?
+                if(rdbOption.Value() == "strings" || rdbOption.Value() == "1030002")
+                {
+                    ExportStrings(pathOption.Value());
+                }
+                else if (rdbOption.Value() == "flashImages" || rdbOption.Value() == "1000624")
+                {
+
+                }
+
+                return 0;
+            });
+
+            cmd.Execute(args);
+        }
+
+        private static List<IDBRIndexEntrty> GetRdbIndex(string installDir)
+        {
+            var rdbPath = Path.Combine(installDir, "RDB");
+            return IBDRParser.ParseIBDRFile(Path.Combine(rdbPath, "le.idx"));
+        }
+
+        private static void PrintIndex(string installDir)
+        {
+            Console.WriteLine("Index RDB Types:");
+            var rdbTypes = GetRdbIndex(installDir);
+            foreach(var rdbType in rdbTypes.Select(i => i.Type).Distinct())
+            {
+                //TODO firendly names
+                Console.WriteLine($"Type ID: {rdbType}   Friendly Name: { rdbType }");
+            }
         }
 
         static void ExportStrings(string installDir)
         {
-            var rdbPath = Path.Combine(installDir, "RDB");
-            var indexEntries = IBDRParser.ParseIBDRFile(Path.Combine(rdbPath, "le.idx"));
+            var indexEntries = GetRdbIndex(installDir);
             var stringEntries = indexEntries.Where(i => i.Type == 1030002).ToDictionary(i => i.Id);
 
             var languageFiles = Directory.EnumerateFiles(Path.Combine(installDir, @"Data\Text\"), "*.tdbl", SearchOption.TopDirectoryOnly).Select(TDL1Parser.ParseTDL1File).ToList();

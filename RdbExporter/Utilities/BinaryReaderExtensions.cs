@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace RdbExporter
+namespace RdbExporter.Utilities
 {
     public static class BinaryReaderExtensions
     {
