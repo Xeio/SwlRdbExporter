@@ -21,7 +21,7 @@ namespace RdbExporter.Exporters
         {
             if (parameters.Arguments.Count < 0) throw new ArgumentException("RawFileExporter requires extension as first argument.");
             var outputPath = Path.ChangeExtension(Path.Combine(parameters.ExportDirectory, entry.Id.ToString()), parameters.Arguments[0]);
-            using (var reader = entry.OpenEntryFile(parameters.SwlInstallDir, parameters.RdbType.SkipBytes))
+            using (var reader = entry.OpenEntryFile(parameters.SwlInstallDir))
             using (var writer = File.OpenWrite(outputPath))
             {
                 reader.BaseStream.CopyToLimited(writer, entry.FileLength);

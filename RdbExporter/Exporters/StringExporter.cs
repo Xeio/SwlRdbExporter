@@ -42,13 +42,12 @@ namespace RdbExporter.Exporters
             //Parallel.ForEach(indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id)), (rdbEntry) =>
             //        WriteOutputJson(installDir, rdbEntry)
             //    );
-
             foreach (var rdbEntry in indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id))) WriteOutputJson(parameters, rdbEntry);
         }
 
         private void WriteOutputJson(ExportParameters parameters, IDBRIndexEntrty rdbIndexEntry, TDL1Entry languageEntry, TDL1File languageFile)
         {
-            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(parameters.SwlInstallDir, parameters.RdbType.SkipBytes));
+            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(parameters.SwlInstallDir));
 
             if (tdc2File.Entries.Count == 0) return;
 
@@ -66,7 +65,7 @@ namespace RdbExporter.Exporters
 
         private void WriteOutputJson(ExportParameters parameters, IDBRIndexEntrty rdbIndexEntry)
         {
-            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(parameters.SwlInstallDir, parameters.RdbType.SkipBytes));
+            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(parameters.SwlInstallDir));
 
             if (tdc2File.Entries.Count == 0) return;
 

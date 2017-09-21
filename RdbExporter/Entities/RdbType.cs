@@ -12,6 +12,5 @@ namespace RdbExporter.Entities
         public int Id { get; set; }
         public string ExporterType { get; set; }
         public List<string> ExporterArguments { get; set; } = new List<string>();
-        public int SkipBytes { get; set; }
     }
 }
