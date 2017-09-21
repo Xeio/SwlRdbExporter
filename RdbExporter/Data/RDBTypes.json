@@ -1,31 +1,39 @@
 ﻿[
   {
     "name": "Flash Images",
+    "isSwl": true,
     "id": 1000624,
     "exporterType": "RdbExporter.Exporters.SwfImageExporter"
   },
   {
     "name": "Strings",
+    "isSwl": true,
     "id": 1030002,
     "exporterType": "RdbExporter.Exporters.StringExporter"
   },
   {
     "name": "Loading Screens",
+    "isSwl": true,
     "id": 1010042,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".jpg" ]
   },
   {
+    "name": "XML Treasure Data",
     "id": 1000083,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".xml" ]
   },
   {
+    "name": "XML Anima Wells",
+    "isSwl": true,
     "id": 1000087,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".xml" ]
   },
   {
+    "name": "XML Resurrection Points",
+    "isSwl": true,
     "id": 1000090,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".xml" ]

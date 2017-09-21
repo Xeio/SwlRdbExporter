@@ -16,10 +16,11 @@ namespace RdbExporter
         {
             var cmd = new CommandLineApplication();
             
-            var listOption = cmd.Option("-l | --list", "List RDB Types",  CommandOptionType.NoValue);
+            var listOption = cmd.Option("-l | --list", "List known RDB Types.",  CommandOptionType.NoValue);
+            var listAllOption = cmd.Option("-la | --listAll", "List all RDB types, including unknown or types not used by SWL.", CommandOptionType.NoValue);
             var pathOption = cmd.Option("-i | --installDir <SWLPath>", "Path to SWL installation",  CommandOptionType.SingleValue);
             var rdbOption = cmd.Option("-d | --rdb <RDBNumberOrName>", "The name or ID of the RDB type to export.",  CommandOptionType.SingleValue);
-            var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of content-aware.", CommandOptionType.NoValue);
+            var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of using the exporter type configured in RDBTypes.config.", CommandOptionType.NoValue);
             cmd.HelpOption("-? | -h | --help");
 
             cmd.OnExecute(() => {
@@ -30,9 +31,9 @@ namespace RdbExporter
                     return 1;
                 }
 
-                if (listOption.HasValue())
+                if (listOption.HasValue() || listAllOption.HasValue())
                 {
-                    PrintIndex(pathOption.Value());
+                    PrintIndex(pathOption.Value(), listAllOption.HasValue());
                     return 0;
                 }
                 
@@ -43,7 +44,7 @@ namespace RdbExporter
                     return 1;
                 }
 
-                var rdbType = Helpers.GetRdbType(rdbOption.Value());
+                var rdbType = Helpers.GetKnownRdbType(rdbOption.Value());
                 if (rdbType == null)
                 {
                     if(int.TryParse(rdbOption.Value(), out int rdbId))
@@ -93,17 +94,36 @@ namespace RdbExporter
             cmd.Execute(args);
         }        
 
-        private static void PrintIndex(string installDir)
+        private static void PrintIndex(string installDir, bool listAll)
         {
-            Console.WriteLine("Index RDB Types:");
+            Console.WriteLine("Printing index of RDB Types");
             var rdbTypes = Helpers.GetRdbIndex(installDir);
-            foreach(var rdbType in rdbTypes.Select(i => i.Type).Distinct())
+            var types = rdbTypes.Select(r => r.Type).Distinct().Select(i => new { KnownType = Helpers.GetKnownRdbType(i.ToString()), TypeId = i });
+
+            Console.WriteLine();
+            Console.WriteLine("Types known to be used by SWL:");
+            Console.WriteLine();
+            foreach (var type in types.Where(t => t.KnownType?.IsSWL ?? false))
             {
-                //TODO firendly names
-                Console.WriteLine($"Type ID: {rdbType}   Friendly Name: { rdbType }");
+                Console.WriteLine($"Type ID: {type.TypeId}   Name: '{ type.KnownType.Name }'");
+            }
+            if (listAll)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Other types:");
+                Console.WriteLine();
+                foreach (var type in types.Where(t => !t.KnownType?.IsSWL ?? true))
+                {
+                    if (type.KnownType != null)
+                    {
+                        Console.WriteLine($"Type ID: {type.TypeId}   Name: '{ type.KnownType.Name }'");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Type ID: {type.TypeId}");
+                    }
+                }
             }
         }
-
-        
     }
 }

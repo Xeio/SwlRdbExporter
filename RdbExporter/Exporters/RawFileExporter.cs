@@ -1,6 +1,5 @@
 ﻿using System;
 using RdbExporter.Entities;
-using System.Threading.Tasks;
 using System.IO;
 using RdbExporter.Utilities;
 
