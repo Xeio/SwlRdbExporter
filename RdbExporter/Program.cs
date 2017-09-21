@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.CommandLineUtils;
-using Newtonsoft.Json;
 using RdbExporter.Entities;
-using RdbExporter.Parsers;
+using RdbExporter.Exporters;
+using RdbExporter.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace RdbExporter
 {
@@ -43,38 +43,60 @@ namespace RdbExporter
                     return 1;
                 }
 
-                if (rawOption.HasValue())
+                var rdbType = Helpers.GetRdbType(rdbOption.Value());
+                if (rdbType == null)
                 {
-                    //TODO: Export just to raw .dat files
-                    return 0;
+                    if(int.TryParse(rdbOption.Value(), out int rdbId))
+                    {
+                        Console.WriteLine($"Known RdbType with name or ID '{rdbOption.Value()}' not found. Exporting as raw .dat files.");
+                        rdbType = new RdbType() { Id = rdbId };
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine("RdbType provided is not a know named type and is an invalid number.");
+                        return 1;
+                    }
                 }
 
-                //TODO: Genericize this more or something, maybe have the RDBTypes.json have a target method?
-                if(rdbOption.Value() == "strings" || rdbOption.Value() == "1030002")
+                var rdbIndex = Helpers.GetRdbIndex(pathOption.Value());
+                var exportParameters = new ExportParameters()
                 {
-                    ExportStrings(pathOption.Value());
+                    RdbType = rdbType,
+                    Arguments = rdbType.ExporterArguments,
+                    SwlInstallDir = pathOption.Value(),
+                    RdbFileEntries = rdbIndex.Where(i => i.Type == rdbType.Id).ToList(),
+                    ExportDirectory = Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), string.IsNullOrWhiteSpace(rdbType.Name) ? rdbType.Id.ToString() : $"{rdbType.Id} - {rdbType.Name}")).FullName
+                };
+                
+                if (exportParameters.RdbFileEntries.Count == 0)
+                {
+                    Console.Error.WriteLine($"No entries found for RDB Type Id '{rdbType.Id}'.");
+                    return 1;
                 }
-                else if (rdbOption.Value() == "flashImages" || rdbOption.Value() == "1000624")
-                {
 
+                if (!string.IsNullOrWhiteSpace(rdbType.ExporterType) && !rawOption.HasValue())
+                {
+                    var type = Type.GetType(rdbType.ExporterType);
+                    var exporter = Activator.CreateInstance(type) as IExporter;
+                    exporter.RunExport(exportParameters);
+                }
+                else
+                {
+                    Console.WriteLine("Exporting as raw .dat files.");
+                    exportParameters.Arguments = new List<string>{ ".dat" };
+                    new RawFileExporter().RunExport(exportParameters);
                 }
 
                 return 0;
             });
 
             cmd.Execute(args);
-        }
-
-        private static List<IDBRIndexEntrty> GetRdbIndex(string installDir)
-        {
-            var rdbPath = Path.Combine(installDir, "RDB");
-            return IBDRParser.ParseIBDRFile(Path.Combine(rdbPath, "le.idx"));
-        }
+        }        
 
         private static void PrintIndex(string installDir)
         {
             Console.WriteLine("Index RDB Types:");
-            var rdbTypes = GetRdbIndex(installDir);
+            var rdbTypes = Helpers.GetRdbIndex(installDir);
             foreach(var rdbType in rdbTypes.Select(i => i.Type).Distinct())
             {
                 //TODO firendly names
@@ -82,68 +104,6 @@ namespace RdbExporter
             }
         }
 
-        static void ExportStrings(string installDir)
-        {
-            var indexEntries = GetRdbIndex(installDir);
-            var stringEntries = indexEntries.Where(i => i.Type == 1030002).ToDictionary(i => i.Id);
-
-            var languageFiles = Directory.EnumerateFiles(Path.Combine(installDir, @"Data\Text\"), "*.tdbl", SearchOption.TopDirectoryOnly).Select(TDL1Parser.ParseTDL1File).ToList();
-
-            var usedFiles = new HashSet<int>();
-            foreach (var languageFile in languageFiles)
-            {
-                Parallel.ForEach(languageFile.Entries, (languageEntry) =>
-                    WriteOutputJson(installDir, stringEntries[languageEntry.FileId], languageEntry, languageFile)
-                );
-
-                foreach(var fileid in languageFile.Entries.Select(e => e.FileId))
-                {
-                    //Track which files we used
-                    usedFiles.Add(fileid);
-                }
-            }
-
-            Parallel.ForEach(indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id)), (rdbEntry) =>
-                    WriteOutputJson(installDir, rdbEntry)
-                );
-        }
-
-        static void WriteOutputJson(string installDir, IDBRIndexEntrty rdbIndexEntry, TDL1Entry languageEntry, TDL1File languageFile)
-        {
-            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(installDir));
-
-            if (tdc2File.Entries.Count == 0) return;
-
-            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
-            var output = JsonConvert.SerializeObject(tdc2File.Entries, settings);
-
-            var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "Json");
-            outputPath = Path.Combine(outputPath, languageFile.LanguageName);
-            Directory.CreateDirectory(outputPath);
-
-            outputPath = Path.Combine(outputPath, $"{languageEntry.RdbId}_{languageEntry.FriendlyName}");
-            outputPath = Path.ChangeExtension(outputPath, ".json");
-
-            File.WriteAllText(outputPath, output);
-        }
-
-        static void WriteOutputJson(string installDir, IDBRIndexEntrty rdbIndexEntry)
-        {
-            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(installDir));
-
-            if (tdc2File.Entries.Count == 0) return;
-
-            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
-            var output = JsonConvert.SerializeObject(tdc2File.Entries, settings);
-
-            var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "Json");
-            outputPath = Path.Combine(outputPath, "Unknown");
-            Directory.CreateDirectory(outputPath);
-
-            outputPath = Path.Combine(outputPath, $"{tdc2File.Category}_{rdbIndexEntry.Id}");
-            outputPath = Path.ChangeExtension(outputPath, ".json");
-
-            File.WriteAllText(outputPath, output);
-        }
+        
     }
 }

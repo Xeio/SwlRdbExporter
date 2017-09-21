@@ -51,6 +51,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\ExportParameters.cs" />
+    <Compile Include="Entities\RdbType.cs" />
+    <Compile Include="Exporters\IExporter.cs" />
+    <Compile Include="Exporters\RawFileExporter.cs" />
+    <Compile Include="Exporters\StringExporter.cs" />
+    <Compile Include="Exporters\SwfImageExporter.cs" />
     <Compile Include="Utilities\BinaryReaderExtensions.cs" />
     <Compile Include="Utilities\BittableBinaryReader.cs" />
     <Compile Include="Entities\TDL1Entry.cs" />
@@ -63,11 +69,16 @@
     <Compile Include="Parsers\TDC2Parser.cs" />
     <Compile Include="Entities\TDL1File.cs" />
     <Compile Include="Parsers\TDL1Parser.cs" />
+    <Compile Include="Utilities\Helpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Data\RDBTypes.json" />
-    <None Include="Data\StringTypes.json" />
+    <None Include="Data\RDBTypes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\StringTypes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

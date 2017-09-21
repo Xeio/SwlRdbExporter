@@ -44,13 +44,16 @@ namespace RdbExporter.Parsers
             foreach(var id in ids)
             {
                 id.FileNumber = binaryReader.ReadByte();
-                var foo = binaryReader.ReadByte();
-                var bar = binaryReader.ReadBytes(2);
+                binaryReader.ReadBytes(3);
                 id.FileOffset = binaryReader.ReadInt32();
                 id.FileLength = binaryReader.ReadInt32();
-                var hash = binaryReader.ReadBytes(16);
+                binaryReader.ReadBytes(16);
 
-                yield return id;
+                if (id.FileNumber != 255)
+                {
+                    //255.rdb doesn't exist, not sure if we should handle these somehow
+                    yield return id;
+                }
             }
         }
     }

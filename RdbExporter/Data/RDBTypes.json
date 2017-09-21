@@ -1,10 +1,19 @@
 ﻿[
   {
-    "name": "flashImages",
-    "id": 1000624
+    "name": "Flash Images",
+    "id": 1000624,
+    "exporterType": "RdbExporter.Exporters.SwfImageExporter"
   },
   {
-    "name": "strings",
-    "id": 1030002
+    "name": "Strings",
+    "id": 1030002,
+    "skipBytes": 12,
+    "exporterType": "RdbExporter.Exporters.StringExporter"
+  },
+  {
+    "name": "Loading Screens",
+    "id": 1010042,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".jpg" ]
   }
 ]
