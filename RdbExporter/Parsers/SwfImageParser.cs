@@ -28,18 +28,18 @@ namespace RdbExporter.Parsers
 
                 var header = Encoding.ASCII.GetString(reader.ReadBytes(3));
                 if (header == "ZWS") throw new InvalidOperationException($"Unspported file type '{header}'.");
-                else if (header != "CWS")
+                else if (header != "CWS" && header != "FWS")
                 {
                     Debug.WriteLine("Invalid swf file.");
                     yield break;
                 }
-                //FWS and ZWS are also valid, but do we ever see them?
 
                 var versionNumber = reader.ReadByte();
                 var fileLength = reader.ReadInt32(); //This is the uncompressed length, so won't match file size for CWF
                 
                 if(header == "CWS")
                 {
+                    //CWS Files are compressed with Zlib
                     reader.ReadBytes(2); //Skip the zlib header, since DeflateStream won't process it correctly
                     reader = new BittableBinaryReader(new DeflateStream(reader.BaseStream, CompressionMode.Decompress));
                 }
@@ -84,8 +84,8 @@ namespace RdbExporter.Parsers
         private static Tag ReadTag(BittableBinaryReader reader)
         {
             uint tagCodeAndLength = reader.ReadUInt16();
-            uint code = (tagCodeAndLength & 0b1111_1111_1100_0000) >> 6;
-            uint length = tagCodeAndLength & 0b0011_1111;
+            uint code = (tagCodeAndLength & 0b1111_1111_1100_0000) >> 6; //upper 10 bits are code
+            uint length = tagCodeAndLength & 0b0011_1111; //lower 6 bits are length
             if (length == 0b0011_1111)
             {
                 //If all length bits are set, this is a large block and uses a UInt to signal size
