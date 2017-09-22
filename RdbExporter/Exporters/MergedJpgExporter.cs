@@ -39,7 +39,11 @@ namespace RdbExporter.Exporters
                         {
                             for (int x = 0; x < 16; x++)
                             {
-                                graphics.DrawImage(highestResImages[x + y * 16], new Point(x * widthHeight, y * widthHeight));
+                                PointF ulCorner = new PointF(x * widthHeight, y * widthHeight);
+                                PointF urCorner = new PointF(x * widthHeight + widthHeight, y * widthHeight);
+                                PointF llCorner = new PointF(x * widthHeight, y * widthHeight + widthHeight);
+                                PointF[] destPara = { ulCorner, urCorner, llCorner };
+                                graphics.DrawImage(highestResImages[x + y * 16], destPara);
                             }
                         }
                         graphics.Save();
