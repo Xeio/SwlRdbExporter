@@ -37,5 +37,35 @@
     "id": 1000090,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".xml" ]
+  },
+  {
+    "name": "Images",
+    "isSwl": true,
+    "id": 1000636,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".png" ]
+  },
+  {
+    "name": "Playfields",
+    "isSwl": true,
+    "id": 1070003,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".xml" ]
+  },
+  {
+    "name": "Maps",
+    "isSwl": true,
+    "id": 1010013,
+    "exporterType": "RdbExporter.Exporters.MergedJpgExporter"
+  },
+  {
+    "id": 1010210,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".png" ]
+  },
+  {
+    "id": 1010211,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".png" ]
   }
 ]

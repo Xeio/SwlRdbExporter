@@ -54,6 +54,7 @@
     <Compile Include="Entities\ExportParameters.cs" />
     <Compile Include="Entities\RdbType.cs" />
     <Compile Include="Exporters\IExporter.cs" />
+    <Compile Include="Exporters\MergedJpgExporter.cs" />
     <Compile Include="Exporters\RawFileExporter.cs" />
     <Compile Include="Exporters\StringExporter.cs" />
     <Compile Include="Exporters\SwfImageExporter.cs" />
