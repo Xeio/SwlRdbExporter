@@ -77,13 +77,15 @@ namespace RdbExporter
 
                 if (!string.IsNullOrWhiteSpace(rdbType.ExporterType) && !rawOption.HasValue())
                 {
+                    Console.WriteLine("Running export for type:");
+                    WriteRrdbTypeLine(rdbType.Id, rdbType);
                     var type = Type.GetType(rdbType.ExporterType);
                     var exporter = Activator.CreateInstance(type) as IExporter;
                     exporter.RunExport(exportParameters);
                 }
                 else
                 {
-                    Console.WriteLine("Exporting as raw .dat files.");
+                    Console.WriteLine($"Exporting type {exportParameters.RdbType.Id} as raw .dat files.");
                     exportParameters.Arguments = new List<string>{ ".dat" };
                     new RawFileExporter().RunExport(exportParameters);
                 }
