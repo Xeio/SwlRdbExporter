@@ -4,6 +4,7 @@ using RdbExporter.Entities;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System;
 
 namespace RdbExporter.Exporters
 {
@@ -24,30 +25,99 @@ namespace RdbExporter.Exporters
                         nextStartIndex = i + 2;
                     }
                 }
-                //The first image is a 512x512 of the whole map
-                //The next 16 are 512x512s of the map split into 16 pieces
-                //Next 64 are... blah blah
-                //The rest are a 16x16 we want to combine into a single image
-                var highestResImages = streams.Skip(1).Skip(4 * 4).Skip(8 * 8).Select(s => Image.FromStream(s)).ToList();
-                if (highestResImages.Count == 16 * 16)
+                //The first image in the file is always the whole map as a single small image
+                //After that, the map is split into N segments
+                //Layouts such as 4x4, 8x8, 16x16, 3x3, 6x6, 12x12, 24x24
+                //Also non-square layouts like 2x3, 4x6, 8x12, 16x32
+                Image finalImage;
+                if(streams.Count == 1)
                 {
-                    var widthHeight = highestResImages.First().Width;
-                    var finalImage = new Bitmap(widthHeight * 16, widthHeight * 16);
+                    finalImage = Image.FromStream(streams.First());
+                }
+                else
+                {
+                    int widthInImageNumbers = 0, heightInImageNumbers = 0;
+                    if (streams.Count == 1 + 4 * 4)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 4;
+                        streams = streams.Skip(1).ToList();
+                    }
+                    else if (streams.Count == 1 + 4 * 4 + 8 * 8)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 8;
+                        streams = streams.Skip(1).Skip(4 * 4).ToList();
+                    }
+                    else if(streams.Count == 1 + 4 * 4 + 8 * 8 + 16 * 16)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 16;
+                        streams = streams.Skip(1).Skip(4 * 4).Skip(8 * 8).ToList();
+                    }
+                    //3x3, 6x6, 12x12, 24x24....
+                    else if (streams.Count == 1 + 3 * 3)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 3;
+                        streams = streams.Skip(1).ToList();
+                    }
+                    else if (streams.Count == 1 + 3 * 3 + 6 * 6)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 6;
+                        streams = streams.Skip(1).Skip(3 * 3).ToList();
+                    }
+                    else if (streams.Count == 1 + 3 * 3 + 6 * 6 + 12 * 12)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 12;
+                        streams = streams.Skip(1).Skip(3 * 3).Skip(6 * 6).ToList();
+                    }
+                    else if (streams.Count == 1 + 3 * 3 + 6 * 6 + 12 * 12 + 24 * 24)
+                    {
+                        widthInImageNumbers = heightInImageNumbers = 24;
+                        streams = streams.Skip(1).Skip(3 * 3).Skip(6 * 6).Skip(12 * 12).ToList();
+                    }
+                    else if (streams.Count == 1 + 2 * 3 + 4 * 6 + 8 * 12 + 16 * 24)
+                    {
+                        //Non-square map
+                        //2x3, 4x12, 8x12, 16x24
+                        widthInImageNumbers = 16;
+                        heightInImageNumbers = 24;
+                        streams = streams.Skip(1).Skip(2 * 3).Skip(4 * 6).Skip(8 * 12).ToList();
+                    }
+                    else
+                    {
+#if DEBUG
+                        throw new Exception("Couldn't merge images, not a square number.");
+#else
+                        Console.WriteLine($"Unable to process file '{0}', couldn't determine grid layout. Found {streams.Count} images.");
+#endif
+                    }
+
+                    using (Image image = Image.FromStream(streams[0]))
+                    {
+                        finalImage = new Bitmap(image.Width * widthInImageNumbers, image.Height * heightInImageNumbers);
+                    }
                     using (var graphics = Graphics.FromImage(finalImage))
                     {
-                        for (int y = 0; y < 16; y++)
+                        for (int y = 0; y < heightInImageNumbers; y++)
                         {
-                            for (int x = 0; x < 16; x++)
+                            for (int x = 0; x < widthInImageNumbers; x++)
                             {
-                                PointF ulCorner = new PointF(x * widthHeight, y * widthHeight);
-                                PointF urCorner = new PointF(x * widthHeight + widthHeight, y * widthHeight);
-                                PointF llCorner = new PointF(x * widthHeight, y * widthHeight + widthHeight);
-                                PointF[] destPara = { ulCorner, urCorner, llCorner };
-                                graphics.DrawImage(highestResImages[x + y * 16], destPara);
+                                using (Image image = Image.FromStream(streams[x + y * widthInImageNumbers]))
+                                {
+                                    var width = image.Width;
+                                    var height = image.Height;
+                                    PointF ulCorner = new PointF(x * width, y * height);
+                                    PointF urCorner = new PointF(x * width + width, y * height);
+                                    PointF llCorner = new PointF(x * width, y * height + height);
+                                    PointF[] destPara = { ulCorner, urCorner, llCorner };
+                                    graphics.DrawImage(image, destPara);
+                                }
                             }
                         }
                         graphics.Save();
                     }
+                }
+
+                if(finalImage != null)
+                {
                     finalImage.Save(Path.Combine(parameters.ExportDirectory, $"{rdbEntry.Id}.png"), ImageFormat.Png);
                 }
             }
