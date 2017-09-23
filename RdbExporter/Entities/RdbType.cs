@@ -16,5 +16,6 @@ namespace RdbExporter.Entities
         /// Flag, indicates if the type is known to be used in SWL
         /// </summary>
         public bool IsSWL { get; set; }
+        public string OtherDesc { get; set; }
     }
 }

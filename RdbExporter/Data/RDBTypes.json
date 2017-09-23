@@ -54,6 +54,7 @@
   },
   {
     "name": "Maps",
+    "otherDesc":  "Warning: The map export is very large and fairly slow.",
     "isSwl": true,
     "id": 1010013,
     "exporterType": "RdbExporter.Exporters.MergedJpgExporter"

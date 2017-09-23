@@ -105,7 +105,7 @@ namespace RdbExporter
             Console.WriteLine();
             foreach (var type in types.Where(t => t.KnownType?.IsSWL ?? false))
             {
-                Console.WriteLine($"Type ID: {type.TypeId}   Name: '{ type.KnownType.Name }'");
+                WriteRrdbTypeLine(type.TypeId, type.KnownType);
             }
             if (listAll)
             {
@@ -114,16 +114,24 @@ namespace RdbExporter
                 Console.WriteLine();
                 foreach (var type in types.Where(t => !t.KnownType?.IsSWL ?? true))
                 {
-                    if (type.KnownType != null)
-                    {
-                        Console.WriteLine($"Type ID: {type.TypeId}   Name: '{ type.KnownType.Name }'");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Type ID: {type.TypeId}");
-                    }
+                    WriteRrdbTypeLine(type.TypeId, type.KnownType);
                 }
             }
+        }
+
+        private static void WriteRrdbTypeLine(int typeId, RdbType knownType)
+        {
+            Console.Write($"Type ID: {typeId}");
+            if (!string.IsNullOrWhiteSpace(knownType?.Name))
+            {
+                Console.Write($"   Name: '{ knownType.Name }'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(knownType?.OtherDesc))
+            {
+                Console.Write($"    {knownType.OtherDesc}");
+            }
+            Console.WriteLine();
         }
     }
 }
