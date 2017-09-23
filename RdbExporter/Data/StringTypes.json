@@ -4,6 +4,10 @@
     "name": "dialog_prompts"
   },
   {
+    "id": "50000",
+    "name": "subtitles"
+  },
+  {
     "id": "50200",
     "name": "item_names"
   },
@@ -26,6 +30,14 @@
   {
     "id": "50212",
     "name": "ability_descriptions"
+  },
+  {
+    "id": "50220",
+    "name": "ability_names"
+  },
+  {
+    "id": "50221",
+    "name": ""
   },
   {
     "id": "50303",
