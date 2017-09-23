@@ -20,7 +20,7 @@ namespace RdbExporter
             var listAllOption = cmd.Option("-la | --listAll", "List all RDB types, including unknown or types not used by SWL.", CommandOptionType.NoValue);
             var pathOption = cmd.Option("-i | --installDir <SWLPath>", "Path to SWL installation",  CommandOptionType.SingleValue);
             var rdbOption = cmd.Option("-d | --rdb <RDBNumberOrName>", "The name or ID of the RDB type to export.",  CommandOptionType.SingleValue);
-            var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of using the exporter type configured in RDBTypes.config.", CommandOptionType.NoValue);
+            var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of using the exporter type configured in RDBTypes.json.", CommandOptionType.NoValue);
             cmd.HelpOption("-? | -h | --help");
 
             cmd.OnExecute(() => {
