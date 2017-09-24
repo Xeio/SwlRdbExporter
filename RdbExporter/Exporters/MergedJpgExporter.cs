@@ -90,9 +90,14 @@ namespace RdbExporter.Exporters
 #endif
                     }
 
+                    //Some overlap in the images, account for that when merging with an offset
+                    const int OFFSET = 7;
+                    int width = 0, height = 0;
                     using (Image image = Image.FromStream(streams[0]))
                     {
-                        finalImage = new Bitmap(image.Width * widthInImageNumbers, image.Height * heightInImageNumbers);
+                        width = image.Width - OFFSET;
+                        height = image.Height - OFFSET;
+                        finalImage = new Bitmap(width * widthInImageNumbers, height * heightInImageNumbers);
                     }
                     using (var graphics = Graphics.FromImage(finalImage))
                     {
@@ -102,11 +107,9 @@ namespace RdbExporter.Exporters
                             {
                                 using (Image image = Image.FromStream(streams[x + y * widthInImageNumbers]))
                                 {
-                                    var width = image.Width;
-                                    var height = image.Height;
                                     PointF ulCorner = new PointF(x * width, y * height);
-                                    PointF urCorner = new PointF(x * width + width, y * height);
-                                    PointF llCorner = new PointF(x * width, y * height + height);
+                                    PointF urCorner = new PointF(x * width + width + OFFSET, y * height);
+                                    PointF llCorner = new PointF(x * width, y * height + height + OFFSET);
                                     PointF[] destPara = { ulCorner, urCorner, llCorner };
                                     graphics.DrawImage(image, destPara);
                                 }
