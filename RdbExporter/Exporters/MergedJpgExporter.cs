@@ -121,7 +121,7 @@ namespace RdbExporter.Exporters
 
                 if(finalImage != null)
                 {
-                    finalImage.Save(Path.Combine(parameters.ExportDirectory, $"{rdbEntry.Id}.png"), ImageFormat.Png);
+                    finalImage.Save(Path.Combine(parameters.ExportDirectory, $"{rdbEntry.Id}.jpg"), ImageFormat.Jpeg);
                 }
             }
         }
