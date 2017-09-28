@@ -58,6 +58,7 @@
     <Compile Include="Exporters\RawFileExporter.cs" />
     <Compile Include="Exporters\StringExporter.cs" />
     <Compile Include="Exporters\SwfImageExporter.cs" />
+    <Compile Include="Parsers\FilenameIndexParser.cs" />
     <Compile Include="Utilities\BinaryReaderExtensions.cs" />
     <Compile Include="Utilities\BittableBinaryReader.cs" />
     <Compile Include="Entities\TDL1Entry.cs" />
