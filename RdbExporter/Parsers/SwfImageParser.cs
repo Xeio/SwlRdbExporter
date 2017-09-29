@@ -22,7 +22,7 @@ namespace RdbExporter.Parsers
 
         public static IEnumerable<Image> ParseImagesFromSwfFile(Stream stream)
         {
-            try
+            using (stream)
             {
                 var reader = new BittableBinaryReader(stream);
 
@@ -30,14 +30,13 @@ namespace RdbExporter.Parsers
                 if (header == "ZWS") throw new InvalidOperationException($"Unspported file type '{header}'.");
                 else if (header != "CWS" && header != "FWS")
                 {
-                    Debug.WriteLine("Invalid swf file.");
-                    yield break;
+                    throw new InvalidDataException("Not a valid SWF file.");
                 }
 
                 var versionNumber = reader.ReadByte();
                 var fileLength = reader.ReadInt32(); //This is the uncompressed length, so won't match file size for CWF
-                
-                if(header == "CWS")
+
+                if (header == "CWS")
                 {
                     //CWS Files are compressed with Zlib
                     reader.ReadBytes(2); //Skip the zlib header, since DeflateStream won't process it correctly
@@ -47,17 +46,13 @@ namespace RdbExporter.Parsers
                 ReadRect(reader);
                 var framerate = reader.ReadInt16();
                 var frameCount = reader.ReadInt16();
-                
+
                 var tags = ReadTags(reader);
-                
-                foreach(var image in tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t)))
+
+                foreach (var image in tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t)))
                 {
-                    if(image != null) yield return image;
+                    if (image != null) yield return image;
                 }
-            }
-            finally
-            {
-                stream.Dispose();
             }
         }
 
@@ -124,7 +119,7 @@ namespace RdbExporter.Parsers
             {
                 colorTable = new int[binaryReader.ReadByte() + 1]; //Color table size
             }
-            if (format != 5 && format != 3) throw new Exception($"Unsupported Lossless2 format '{format}'");
+            if (format != 5 && format != 3) throw new Exception($"Unsupported Lossless format '{format}'");
 
             binaryReader.ReadBytes(2); //Eat the Zlib header
             var decompressedData = ReadAll(new DeflateStream(binaryReader.BaseStream, CompressionMode.Decompress));
@@ -134,14 +129,15 @@ namespace RdbExporter.Parsers
             {
                 for(int i = 0; i < colorTable.Length; i++)
                 {
-                    //32 bit ARGB
                     if (alpha)
                     {
+                        //32 bit RGBA
                         colorTable[i] = Color.FromArgb(decompressedData[dataIndex + 3], decompressedData[dataIndex + 0], decompressedData[dataIndex + 1], decompressedData[dataIndex + 2]).ToArgb();
                         dataIndex += 4; 
                     }
                     else
                     {
+                        //24 bit RGB
                         colorTable[i] = Color.FromArgb(255, decompressedData[dataIndex + 0], decompressedData[dataIndex + 1], decompressedData[dataIndex + 2]).ToArgb();
                         dataIndex += 3;
                     }
@@ -160,15 +156,16 @@ namespace RdbExporter.Parsers
                     {
                         if (format == 5)
                         {
-                            //32 bit ARGB
                             if (alpha)
                             {
+                                //32 bit RGBA
                                 imagePointer[imageIndex] = Color.FromArgb(decompressedData[dataIndex], decompressedData[dataIndex + 1], decompressedData[dataIndex + 2], decompressedData[dataIndex + 3]).ToArgb();
                                 dataIndex += 4;
                             }
                             else
                             {
-                                imagePointer[imageIndex] = Color.FromArgb(255, decompressedData[dataIndex + 0], decompressedData[dataIndex + 1], decompressedData[dataIndex + 2]).ToArgb();
+                                //32 bits, but the first 8 bits should be ignored, rest is RGB
+                                imagePointer[imageIndex] = Color.FromArgb(255, decompressedData[dataIndex + 1], decompressedData[dataIndex + 2], decompressedData[dataIndex + 3]).ToArgb();
                                 dataIndex += 4;
                             }
                         }
@@ -180,6 +177,8 @@ namespace RdbExporter.Parsers
                         }
                         imageIndex += 1;
                     }
+                    
+                    //Scan lines are aligned to 32-bit lengths, check if we need to adjust for padding
                     if (format == 3 && width % 4 > 0)
                     {
                         dataIndex += 4 - width % 4;
@@ -195,32 +194,19 @@ namespace RdbExporter.Parsers
             var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 6));
             var characterId = binaryReader.ReadUInt16();
             int alphaDataOffset = (int)binaryReader.ReadUInt32(); //Not a safe cast probably
-            try
-            { 
-                return Image.FromStream(new MemoryStream(tag.Data, 6, alphaDataOffset));
-            }
-            catch
-            {
-                return null;
-            }
+            return Image.FromStream(new MemoryStream(tag.Data, 6, alphaDataOffset));
         }
 
         private static Image HandleJpeg2(Tag tag)
         {
             var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 2));
             var characterId = binaryReader.ReadUInt16();
-            try
-            {
-                return Image.FromStream(new MemoryStream(tag.Data, 2, tag.Data.Length - 2));
-            }
-            catch
-            {
-                return null;
-            }
+            return Image.FromStream(new MemoryStream(tag.Data, 2, tag.Data.Length - 2));
         }
 
         private static byte[] ReadAll(Stream stream)
         {
+            using (stream)
             using (var memoryStream = new MemoryStream(1))
             {
                 stream.CopyTo(memoryStream);
