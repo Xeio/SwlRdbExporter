@@ -1,7 +1,6 @@
 ﻿using RdbExporter.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -13,7 +12,7 @@ namespace RdbExporter.Parsers
 {
     public class SwfImageParser
     {
-        static readonly Codes[] IMAGE_CODES = { Codes.DefineBitsLossless, Codes.DefineBitsLossless2, Codes.DefineBitsJpeg2, Codes.DefineBitsJpeg3, Codes.DefineBitsJpeg4 };
+        static readonly SwfTagCode[] IMAGE_CODES = { SwfTagCode.DefineBitsLossless, SwfTagCode.DefineBitsLossless2, SwfTagCode.DefineBitsJpeg2, SwfTagCode.DefineBitsJpeg3, SwfTagCode.DefineBitsJpeg4 };
 
         public static IEnumerable<Image> ParseImagesFromSwfFile(string file)
         {
@@ -49,10 +48,7 @@ namespace RdbExporter.Parsers
 
                 var tags = ReadTags(reader);
 
-                foreach (var image in tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t)))
-                {
-                    if (image != null) yield return image;
-                }
+                return tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t));
             }
         }
 
@@ -66,17 +62,17 @@ namespace RdbExporter.Parsers
             var yMax = reader.ReadBits(length);
         }
 
-        private static List<Tag> ReadTags(BittableBinaryReader reader)
+        private static List<SwfTag> ReadTags(BittableBinaryReader reader)
         {
-            var tags = new List<Tag>();
+            var tags = new List<SwfTag>();
             do
             {
                 tags.Add(ReadTag(reader));
-            } while (tags[tags.Count - 1].Code != Codes.End);
+            } while (tags[tags.Count - 1].Code != SwfTagCode.End);
             return tags;
         }
 
-        private static Tag ReadTag(BittableBinaryReader reader)
+        private static SwfTag ReadTag(BittableBinaryReader reader)
         {
             uint tagCodeAndLength = reader.ReadUInt16();
             uint code = (tagCodeAndLength & 0b1111_1111_1100_0000) >> 6; //upper 10 bits are code
@@ -87,27 +83,27 @@ namespace RdbExporter.Parsers
                 length = reader.ReadUInt32();
             }
             var data = reader.ReadBytes((int)length); //This cast isn't safe, probably should check this
-            return new Tag() { Code = (Codes)code, Data = data };
+            return new SwfTag() { Code = (SwfTagCode)code, Data = data };
         }
 
-        private static Image HandleImageTag(Tag tag)
+        private static Image HandleImageTag(SwfTag tag)
         {
             switch (tag.Code)
             {
-                case Codes.DefineBitsLossless:
+                case SwfTagCode.DefineBitsLossless:
                     return HandleLossless(tag, false);
-                case Codes.DefineBitsLossless2:
+                case SwfTagCode.DefineBitsLossless2:
                     return HandleLossless(tag, true);
-                case Codes.DefineBitsJpeg3:
+                case SwfTagCode.DefineBitsJpeg3:
                     return HandleJpeg3(tag);
-                case Codes.DefineBitsJpeg2:
+                case SwfTagCode.DefineBitsJpeg2:
                     return HandleJpeg2(tag);
                 default:
                     throw new Exception($"Didn't handle code type {tag.Code}");
             }
         }
 
-        private static Image HandleLossless(Tag tag, bool alpha)
+        private static Image HandleLossless(SwfTag tag, bool alpha)
         {
             var binaryReader = new BinaryReader(new MemoryStream(tag.Data));
             var characterId = binaryReader.ReadUInt16();
@@ -189,7 +185,7 @@ namespace RdbExporter.Parsers
             return bitmap;
         }
 
-        private static Image HandleJpeg3(Tag tag)
+        private static Image HandleJpeg3(SwfTag tag)
         {
             var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 6));
             var characterId = binaryReader.ReadUInt16();
@@ -197,7 +193,7 @@ namespace RdbExporter.Parsers
             return Image.FromStream(new MemoryStream(tag.Data, 6, alphaDataOffset));
         }
 
-        private static Image HandleJpeg2(Tag tag)
+        private static Image HandleJpeg2(SwfTag tag)
         {
             var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 2));
             var characterId = binaryReader.ReadUInt16();
@@ -215,13 +211,13 @@ namespace RdbExporter.Parsers
         }
     }
 
-    public class Tag
+    public class SwfTag
     {
-        public Codes Code { get; set; }
+        public SwfTagCode Code { get; set; }
         public byte[] Data { get; set; }
     }
 
-    public enum Codes : uint
+    public enum SwfTagCode : uint
     {
         /// <summary>
         /// End tag, always the last tag in the file
