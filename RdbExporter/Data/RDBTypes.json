@@ -39,6 +39,13 @@
     "exporterArguments": [ ".xml" ]
   },
   {
+    "name": "USM Video Files",
+    "isSwl": true,
+    "id": 1000635,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".usm" ]
+  },
+  {
     "name": "Images",
     "isSwl": true,
     "id": 1000636,
@@ -123,5 +130,11 @@
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "otherDesc": "Warning: This export is extremely large (~10GB).",
     "exporterArguments": [ ".fme" ]
+  },
+  {
+    "name": "PhysX XML",
+    "id": 1000007,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".xml" ]
   }
 ]
