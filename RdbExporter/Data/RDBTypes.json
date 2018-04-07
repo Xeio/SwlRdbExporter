@@ -139,6 +139,7 @@
   },
   {
     "name": "Dialog Audio",
+    "isSwl": true,
     "id": 1020003,
     "exporterType": "RdbExporter.Exporters.VoiceoverExporter"
   }
