@@ -60,6 +60,7 @@
     <Compile Include="Exporters\RawFileExporter.cs" />
     <Compile Include="Exporters\StringExporter.cs" />
     <Compile Include="Exporters\SwfImageExporter.cs" />
+    <Compile Include="Exporters\VoiceoverExporter.cs" />
     <Compile Include="Parsers\FilenameIndexParser.cs" />
     <Compile Include="Utilities\BinaryReaderExtensions.cs" />
     <Compile Include="Utilities\BittableBinaryReader.cs" />

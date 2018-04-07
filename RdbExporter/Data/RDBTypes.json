@@ -136,5 +136,10 @@
     "id": 1000007,
     "exporterType": "RdbExporter.Exporters.RawFileExporter",
     "exporterArguments": [ ".xml" ]
+  },
+  {
+    "name": "Dialog Audio",
+    "id": 1020003,
+    "exporterType": "RdbExporter.Exporters.VoiceoverExporter"
   }
 ]
