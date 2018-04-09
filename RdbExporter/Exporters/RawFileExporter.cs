@@ -9,8 +9,9 @@ namespace RdbExporter.Exporters
     {
         public void RunExport(ExportParameters parameters)
         {
-            //Parallel.ForEach(parameters.RdbFileEntries, entry => Process(parameters, entry));
-            foreach(var entry in parameters.RdbFileEntries)
+            if (parameters.Arguments.Count < 1) throw new ArgumentException("RawFileExporter requires extension as first argument.");
+
+            foreach (var entry in parameters.RdbFileEntries)
             {
                 Process(parameters, entry);
             }
@@ -18,8 +19,6 @@ namespace RdbExporter.Exporters
 
         public void Process(ExportParameters parameters, IDBRIndexEntrty entry)
         {
-            if (parameters.Arguments.Count < 0) throw new ArgumentException("RawFileExporter requires extension as first argument.");
-
             string outputPath;
             var filenameIndex = Helpers.GetFilenameIndex(parameters.SwlInstallDir);
             if(filenameIndex.TryGetValue(entry.Type, out var idToNameDictionary) && idToNameDictionary.TryGetValue(entry.Id, out var filename))

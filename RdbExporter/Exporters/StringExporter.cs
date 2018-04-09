@@ -1,11 +1,9 @@
-﻿using System;
-using RdbExporter.Entities;
+﻿using RdbExporter.Entities;
 using System.IO;
 using System.Collections.Generic;
 using RdbExporter.Parsers;
 using RdbExporter.Utilities;
 using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace RdbExporter.Exporters

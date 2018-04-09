@@ -1,10 +1,6 @@
 ﻿using RdbExporter.Entities;
 using RdbExporter.Utilities;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RdbExporter.Exporters
@@ -18,8 +14,6 @@ namespace RdbExporter.Exporters
 
         public void Process(ExportParameters parameters, IDBRIndexEntrty entry)
         {
-            if (parameters.Arguments.Count < 0) throw new ArgumentException("RawFileExporter requires extension as first argument.");
-
             using (var reader = entry.OpenEntryFile(parameters.SwlInstallDir))
             {
                 for(int i = 0; i < entry.FileLength; i++)
