@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.CommandLineUtils;
+using Newtonsoft.Json;
 using RdbExporter.Entities;
 using RdbExporter.Exporters;
 using RdbExporter.Utilities;
@@ -6,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace RdbExporter
 {
@@ -21,6 +21,7 @@ namespace RdbExporter
             var pathOption = cmd.Option("-i | --installDir <SWLPath>", "Path to SWL installation",  CommandOptionType.SingleValue);
             var rdbOption = cmd.Option("-d | --rdb <RDBNumberOrName>", "The name or ID of the RDB type to export.",  CommandOptionType.SingleValue);
             var rawOption = cmd.Option("-r | --raw", "Export raw .dat files instead of using the exporter type configured in RDBTypes.json.", CommandOptionType.NoValue);
+            var dumpIndexOption = cmd.Option("-di | --dumpIndex", "Dump the RDB Index", CommandOptionType.NoValue);
             cmd.HelpOption("-? | -h | --help");
 
             cmd.OnExecute(() => {
@@ -34,6 +35,12 @@ namespace RdbExporter
                 if (listOption.HasValue() || listAllOption.HasValue())
                 {
                     PrintIndex(pathOption.Value(), listAllOption.HasValue());
+                    return 0;
+                }
+
+                if (dumpIndexOption.HasValue())
+                {
+                    DumpIndex(pathOption.Value());
                     return 0;
                 }
                 
@@ -94,7 +101,7 @@ namespace RdbExporter
             });
 
             cmd.Execute(args);
-        }        
+        }
 
         private static void PrintIndex(string installDir, bool listAll)
         {
@@ -134,6 +141,13 @@ namespace RdbExporter
                 Console.Write($"    {knownType.OtherDesc}");
             }
             Console.WriteLine();
+        }
+
+        private static void DumpIndex(string installDir)
+        {
+            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
+            var index = Helpers.GetRdbIndex(installDir);
+            File.WriteAllText("Index.json", JsonConvert.SerializeObject(index, settings));
         }
     }
 }
