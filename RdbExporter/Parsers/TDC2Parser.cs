@@ -11,10 +11,8 @@ namespace RdbExporter.Parsers
     {
         public static TDC2File ParseTDC2File(string file)
         {
-            using (var binaryReader = new BinaryReader(File.OpenRead(file)))
-            {
-                return ParseTDC2File(binaryReader);
-            }
+            using var binaryReader = new BinaryReader(File.OpenRead(file));
+            return ParseTDC2File(binaryReader);
         }
 
         public static TDC2File ParseTDC2File(BinaryReader binaryReader)
@@ -52,7 +50,7 @@ namespace RdbExporter.Parsers
             {
                 var id = stream.ReadInt32();
                 //Seems like this value might be something related to localization, mostly filled out in the items files for FR and DE clients. Mostly with the same ID in all places.
-                var unknownValue = stream.ReadInt32();
+                _ = stream.ReadInt32(); //Unknown value
                 var offset = stream.ReadInt32();
                 var length = stream.ReadInt32();
                 if (length == 0) continue;

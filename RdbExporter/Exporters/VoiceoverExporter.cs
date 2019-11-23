@@ -1,5 +1,5 @@
 ﻿using RdbExporter.Entities;
-using RdbExporter.Utilities;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -14,35 +14,14 @@ namespace RdbExporter.Exporters
 
         public void Process(ExportParameters parameters, IDBRIndexEntrty entry)
         {
-            using (var reader = entry.OpenEntryFile(parameters.SwlInstallDir))
+            using var reader = entry.OpenEntryFile(parameters.SwlInstallDir);
+            ReadOnlySpan<byte> fileContent = reader.ReadBytes(entry.FileLength);
+            ReadOnlySpan<byte> oggHeader = new byte[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' };
+            var oggIndex = fileContent.IndexOf(oggHeader);
+            if(oggIndex >= 0)
             {
-                for(int i = 0; i < entry.FileLength; i++)
-                {
-                    if(reader.ReadByte() == 'O')
-                    {
-                        //Search for Ogg file header (maybe a better way to do this? Need to understand the LIP file type better)
-                        if(reader.ReadByte() == 'g')
-                        {
-                            if (reader.ReadByte() == 'g')
-                            {
-                                if (reader.ReadByte() == 'S')
-                                {
-                                    reader.BaseStream.Seek(-4, SeekOrigin.Current);
-
-                                    string outputPath = Path.ChangeExtension(Path.Combine(parameters.ExportDirectory, entry.Id.ToString()), ".ogg");
-                                    using (var writer = File.OpenWrite(outputPath))
-                                    {
-                                        reader.BaseStream.CopyToLimited(writer, entry.FileLength - i);
-                                    }
-                                    break;
-                                }
-                                reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                            }
-                            reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                        }
-                        reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                    }
-                }
+                string outputPath = Path.ChangeExtension(Path.Combine(parameters.ExportDirectory, entry.Id.ToString()), ".ogg");
+                File.WriteAllBytes(outputPath, fileContent.Slice(oggIndex).ToArray());
             }
         }
     }

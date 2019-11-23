@@ -2,6 +2,7 @@
 using RdbExporter.Entities;
 using System.IO;
 using RdbExporter.Utilities;
+using System.Threading.Tasks;
 
 namespace RdbExporter.Exporters
 {
@@ -11,10 +12,7 @@ namespace RdbExporter.Exporters
         {
             if (parameters.Arguments.Count < 1) throw new ArgumentException("RawFileExporter requires extension as first argument.");
 
-            foreach (var entry in parameters.RdbFileEntries)
-            {
-                Process(parameters, entry);
-            }
+            Parallel.ForEach(parameters.RdbFileEntries, (rdbEntry) => Process(parameters, rdbEntry));
         }
 
         public void Process(ExportParameters parameters, IDBRIndexEntrty entry)
@@ -31,11 +29,9 @@ namespace RdbExporter.Exporters
                  outputPath = Path.ChangeExtension(Path.Combine(parameters.ExportDirectory, entry.Id.ToString()), parameters.Arguments[0]);
             }
 
-            using (var reader = entry.OpenEntryFile(parameters.SwlInstallDir))
-            using (var writer = File.OpenWrite(outputPath))
-            {
-                reader.BaseStream.CopyToLimited(writer, entry.FileLength);
-            }
+            using var reader = entry.OpenEntryFile(parameters.SwlInstallDir);
+            using var writer = File.OpenWrite(outputPath);
+            reader.BaseStream.CopyToLimited(writer, entry.FileLength);
         }
     }
 }

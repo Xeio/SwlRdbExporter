@@ -11,21 +11,19 @@ namespace RdbExporter.Parsers
     {
         public static List<IDBRIndexEntrty> ParseIBDRFile(string file)
         {
-            using (var binaryReader = new BinaryReader(File.OpenRead(file)))
-            {
-                var header = Encoding.ASCII.GetString(binaryReader.ReadBytes(4));
-                if (header != "IBDR") throw new InvalidOperationException("Not a IBDR file.");
+            using var binaryReader = new BinaryReader(File.OpenRead(file));
+            var header = Encoding.ASCII.GetString(binaryReader.ReadBytes(4));
+            if (header != "IBDR") throw new InvalidOperationException("Not a IBDR file.");
 
-                var versionNumber = binaryReader.ReadInt32();
-                var hash = binaryReader.ReadBytes(16);
-                var entryCount = binaryReader.ReadInt32();
+            var versionNumber = binaryReader.ReadInt32();
+            var hash = binaryReader.ReadBytes(16);
+            var entryCount = binaryReader.ReadInt32();
 
-                var rdbTypes = ReadIds(binaryReader, entryCount).ToList().ReadFileEntries(binaryReader).ToList();
+            var rdbTypes = ReadIds(binaryReader, entryCount).ToList().ReadFileEntries(binaryReader).ToList();
 
-                //There's a bunch of extra data to parse at the end of the file here, do we need it?
+            //There's a bunch of extra data to parse at the end of the file here, do we need it?
 
-                return rdbTypes;
-            }
+            return rdbTypes;
         }
 
         private static IEnumerable<IDBRIndexEntrty> ReadIds(BinaryReader binaryReader, int count)

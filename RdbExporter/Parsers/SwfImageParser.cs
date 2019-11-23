@@ -23,7 +23,7 @@ namespace RdbExporter.Parsers
         {
             using (stream)
             {
-                var reader = new BittableBinaryReader(stream);
+                using var reader = new BittableBinaryReader(stream);
 
                 var header = Encoding.ASCII.GetString(reader.ReadBytes(3));
                 if (header == "ZWS") throw new InvalidOperationException($"Unspported file type '{header}'.");
@@ -39,27 +39,31 @@ namespace RdbExporter.Parsers
                 {
                     //CWS Files are compressed with Zlib
                     reader.ReadBytes(2); //Skip the zlib header, since DeflateStream won't process it correctly
-                    reader = new BittableBinaryReader(new DeflateStream(reader.BaseStream, CompressionMode.Decompress));
+                    using var compressedReader = new BittableBinaryReader(new DeflateStream(reader.BaseStream, CompressionMode.Decompress));
+                    return ReadHeaderAndImages(compressedReader);
                 }
-
-                ReadRect(reader);
-                var framerate = reader.ReadInt16();
-                var frameCount = reader.ReadInt16();
-
-                var tags = ReadTags(reader);
-
-                return tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t));
+                return ReadHeaderAndImages(reader);
             }
+        }
+        private static IEnumerable<Image> ReadHeaderAndImages(BittableBinaryReader reader)
+        {
+            ReadRect(reader);
+            var framerate = reader.ReadInt16();
+            var frameCount = reader.ReadInt16();
+
+            var tags = ReadTags(reader);
+
+            return tags.Where(t => IMAGE_CODES.Contains(t.Code)).Select(t => HandleImageTag(t));
         }
 
         private static void ReadRect(BittableBinaryReader reader)
         {
             //This is the "twip" sized boundaries of the SWF
             int length = reader.ReadBits(5); //Bit length of bounds
-            var xmin = reader.ReadBits(length);
-            var xMax = reader.ReadBits(length);
-            var yMin = reader.ReadBits(length);
-            var yMax = reader.ReadBits(length);
+            _ = reader.ReadBits(length); //xMin
+            _ = reader.ReadBits(length); //xMax
+            _ = reader.ReadBits(length); //yMin
+            _ = reader.ReadBits(length); //yMax
         }
 
         private static List<SwfTag> ReadTags(BittableBinaryReader reader)
@@ -88,19 +92,14 @@ namespace RdbExporter.Parsers
 
         private static Image HandleImageTag(SwfTag tag)
         {
-            switch (tag.Code)
+            return tag.Code switch
             {
-                case SwfTagCode.DefineBitsLossless:
-                    return HandleLossless(tag, false);
-                case SwfTagCode.DefineBitsLossless2:
-                    return HandleLossless(tag, true);
-                case SwfTagCode.DefineBitsJpeg3:
-                    return HandleJpeg3(tag);
-                case SwfTagCode.DefineBitsJpeg2:
-                    return HandleJpeg2(tag);
-                default:
-                    throw new Exception($"Didn't handle code type {tag.Code}");
-            }
+                SwfTagCode.DefineBitsLossless => HandleLossless(tag, false),
+                SwfTagCode.DefineBitsLossless2 => HandleLossless(tag, true),
+                SwfTagCode.DefineBitsJpeg3 => HandleJpeg3(tag),
+                SwfTagCode.DefineBitsJpeg2 => HandleJpeg2(tag),
+                _ => throw new Exception($"Didn't handle code type {tag.Code}"),
+            };
         }
 
         private static Image HandleLossless(SwfTag tag, bool alpha)
@@ -187,16 +186,16 @@ namespace RdbExporter.Parsers
 
         private static Image HandleJpeg3(SwfTag tag)
         {
-            var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 6));
-            var characterId = binaryReader.ReadUInt16();
+            using var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 6));
+            _ = binaryReader.ReadUInt16(); //characterId
             int alphaDataOffset = (int)binaryReader.ReadUInt32(); //Not a safe cast probably
             return Image.FromStream(new MemoryStream(tag.Data, 6, alphaDataOffset));
         }
 
         private static Image HandleJpeg2(SwfTag tag)
         {
-            var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 2));
-            var characterId = binaryReader.ReadUInt16();
+            using var binaryReader = new BinaryReader(new MemoryStream(tag.Data, 0, 2));
+            _ = binaryReader.ReadUInt16(); //characterId
             return Image.FromStream(new MemoryStream(tag.Data, 2, tag.Data.Length - 2));
         }
 
