@@ -144,7 +144,7 @@ namespace RdbExporter.Parsers
             int imageIndex = 0;
             unsafe
             {
-                int* imagePointer = (int *) bitmapData.Scan0;
+                Span<int> imagePointer = new Span<int>(bitmapData.Scan0.ToPointer(), width * height);
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
