@@ -12,7 +12,7 @@ namespace RdbExporter.Exporters
             Parallel.ForEach(parameters.RdbFileEntries, entry => Process(parameters, entry));
         }
 
-        public void Process(ExportParameters parameters, IDBRIndexEntrty entry)
+        private void Process(ExportParameters parameters, IDBRIndexEntrty entry)
         {
             using var reader = entry.OpenEntryFile(parameters.SwlInstallDir);
             ReadOnlySpan<byte> fileContent = reader.ReadBytes(entry.FileLength);
@@ -21,7 +21,8 @@ namespace RdbExporter.Exporters
             if(oggIndex >= 0)
             {
                 string outputPath = Path.ChangeExtension(Path.Combine(parameters.ExportDirectory, entry.Id.ToString()), ".ogg");
-                File.WriteAllBytes(outputPath, fileContent.Slice(oggIndex).ToArray());
+                using var file = File.OpenWrite(outputPath);
+                file.Write(fileContent.Slice(oggIndex));
             }
         }
     }
