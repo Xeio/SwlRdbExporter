@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using RdbExporter.Parsers;
 using RdbExporter.Utilities;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace RdbExporter.Exporters
 {
@@ -25,10 +28,9 @@ namespace RdbExporter.Exporters
             var usedFiles = new HashSet<int>();
             foreach (var languageFile in languageFiles)
             {
-                //Parallel.ForEach(languageFile.Entries, (languageEntry) =>
-                //    WriteOutputJson(installDir, stringEntries[languageEntry.FileId], languageEntry, languageFile)
-                //);
-                foreach (var languageEntry in languageFile.Entries) WriteOutputJson(parameters, stringEntries[languageEntry.FileId], languageEntry, languageFile);
+                Parallel.ForEach(languageFile.Entries, (languageEntry) =>
+                    WriteOutputJson(parameters, stringEntries[languageEntry.FileId], languageEntry, languageFile)
+                );
 
                 foreach (var fileid in languageFile.Entries.Select(e => e.FileId))
                 {
@@ -37,10 +39,9 @@ namespace RdbExporter.Exporters
                 }
             }
 
-            //Parallel.ForEach(indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id)), (rdbEntry) =>
-            //        WriteOutputJson(installDir, rdbEntry)
-            //    );
-            foreach (var rdbEntry in indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id))) WriteOutputJson(parameters, rdbEntry);
+            Parallel.ForEach(indexEntries.Where(i => i.Type == 1030002 && !usedFiles.Contains(i.Id)), (rdbEntry) =>
+                    WriteOutputJson(parameters, rdbEntry, null, null)
+                );
         }
 
         private void WriteOutputJson(ExportParameters parameters, IDBRIndexEntrty rdbIndexEntry, TDL1Entry languageEntry, TDL1File languageFile)
@@ -49,31 +50,21 @@ namespace RdbExporter.Exporters
 
             if (tdc2File.Entries.Count == 0) return;
 
-            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
-            var output = JsonConvert.SerializeObject(tdc2File.Entries, settings);
+            var settings = new JsonSerializerOptions() { IgnoreNullValues = true, WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            var output = JsonSerializer.Serialize(tdc2File.Entries, settings);
+            output = Regex.Replace(output, @"\\u[0-9A-F]{4}", " "); //Replace unicode endpoints, there are mostly variants of non-breaking spaces
 
-            var outputPath = Path.Combine(parameters.ExportDirectory, languageFile.LanguageName);
+            var outputPath = Path.Combine(parameters.ExportDirectory, languageFile?.LanguageName ?? "Unknown");
             Directory.CreateDirectory(outputPath);
 
-            outputPath = Path.Combine(outputPath, $"{languageEntry.RdbId}_{languageEntry.FriendlyName}");
-            outputPath = Path.ChangeExtension(outputPath, ".json");
-
-            File.WriteAllText(outputPath, output);
-        }
-
-        private void WriteOutputJson(ExportParameters parameters, IDBRIndexEntrty rdbIndexEntry)
-        {
-            var tdc2File = TDC2Parser.ParseTDC2File(rdbIndexEntry.OpenEntryFile(parameters.SwlInstallDir));
-
-            if (tdc2File.Entries.Count == 0) return;
-
-            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
-            var output = JsonConvert.SerializeObject(tdc2File.Entries, settings);
-
-            var outputPath = Path.Combine(parameters.ExportDirectory, "Unknown");
-            Directory.CreateDirectory(outputPath);
-
-            outputPath = Path.Combine(outputPath, $"{tdc2File.Category}_{rdbIndexEntry.Id}");
+            if (languageEntry != null)
+            {
+                outputPath = Path.Combine(outputPath, $"{languageEntry.RdbId}_{languageEntry.FriendlyName}");
+            }
+            else
+            {
+                outputPath = Path.Combine(outputPath, $"{tdc2File.Category}_{rdbIndexEntry.Id}");
+            }
             outputPath = Path.ChangeExtension(outputPath, ".json");
 
             File.WriteAllText(outputPath, output);

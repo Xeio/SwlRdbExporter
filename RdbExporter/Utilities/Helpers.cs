@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using RdbExporter.Entities;
+﻿using RdbExporter.Entities;
 using RdbExporter.Parsers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace RdbExporter.Utilities
 {
@@ -31,7 +31,7 @@ namespace RdbExporter.Utilities
         private static List<RdbType> GetKnownRdbTypes()
         {
             var rdbTypesFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "RdbTypes.json");
-            return JsonConvert.DeserializeObject<List<RdbType>>(File.ReadAllText(rdbTypesFile));
+            return JsonSerializer.Deserialize<List<RdbType>>(File.ReadAllText(rdbTypesFile), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
         }
 
         public static RdbType GetKnownRdbType(string nameOrId)

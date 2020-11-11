@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.CommandLineUtils;
-using Newtonsoft.Json;
 using RdbExporter.Entities;
 using RdbExporter.Exporters;
 using RdbExporter.Utilities;
@@ -7,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace RdbExporter
 {
@@ -145,9 +146,9 @@ namespace RdbExporter
 
         private static void DumpIndex(string installDir)
         {
-            var settings = new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
+            var settings = new JsonSerializerOptions() { IgnoreNullValues = true, WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             var index = Helpers.GetRdbIndex(installDir);
-            File.WriteAllText("Index.json", JsonConvert.SerializeObject(index, settings));
+            File.WriteAllText("Index.json", JsonSerializer.Serialize(index, settings));
         }
     }
 }
