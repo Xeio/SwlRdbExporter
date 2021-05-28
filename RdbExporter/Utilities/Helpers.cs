@@ -31,7 +31,7 @@ namespace RdbExporter.Utilities
         private static List<RdbType> GetKnownRdbTypes()
         {
             var rdbTypesFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "RdbTypes.json");
-            return JsonSerializer.Deserialize<List<RdbType>>(File.ReadAllText(rdbTypesFile), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            return JsonSerializer.Deserialize<List<RdbType>>(File.ReadAllText(rdbTypesFile), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, AllowTrailingCommas = true });
         }
 
         public static RdbType GetKnownRdbType(string nameOrId)
