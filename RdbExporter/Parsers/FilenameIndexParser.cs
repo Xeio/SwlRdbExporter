@@ -8,8 +8,6 @@ namespace RdbExporter.Parsers
     {
         public static Dictionary<int, Dictionary<int, string>> ParseNameIndex(BinaryReader reader)
         {
-            //var header = Encoding.ASCII.GetString(reader.ReadBytes(8)); //0x11,0x00,0x00,0x00,0x51,0x69,0x0F,0x00 Dunno if this is significant
-
             var rdbTypesCount = reader.ReadInt32();
 
             return ReadRdbTypes(reader, rdbTypesCount);
