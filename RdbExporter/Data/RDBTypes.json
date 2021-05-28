@@ -121,8 +121,7 @@
   {
     "name": "File Names Index",
     "id": 1000010,
-    "exporterType": "RdbExporter.Exporters.RawFileExporter",
-    "exporterArguments": [ ".dat" ]
+    "exporterType": "RdbExporter.Exporters.FileNamesExporter"
   },
   {
     "name": "FME Files",
@@ -142,5 +141,11 @@
     "isSwl": true,
     "id": 1020003,
     "exporterType": "RdbExporter.Exporters.VoiceoverExporter"
+  },
+  {
+    "name": "Miscellaneous Images",
+    "id": 1010008,
+    "exporterType": "RdbExporter.Exporters.RawFileExporter",
+    "exporterArguments": [ ".png" ]
   }
 ]
